@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-from typing import List
 
+from bs4 import BeautifulSoup
+from typing import List
 import click
 import glob
 import re
 import os
-from bs4 import BeautifulSoup
 
 
 @click.command()
@@ -48,7 +48,7 @@ def process(path, marcxml):
 	if click.confirm('Do you want to continue?', abort=True):
 		if create_backup(parsed['len'], marcxml):
 			if remove_unmatched(unmatched_ids, parsed['soup'], marcxml):
-				click.echo("Filtered out unmatched records from {}".format(marcxml.name))
+				click.echo("Filtered out {} unmatched records from {}".format(len(unmatched_ids), marcxml.name))
 
 
 def filenames_to_index(directory):
@@ -61,6 +61,8 @@ def filenames_to_index(directory):
 
 def parse_marcxml(marcxml_file):
 	marcxml_soup = BeautifulSoup(marcxml_file, features="xml")
+	# Bug? Extra XML ProcessingInstruction appears as last element, extract it.
+	marcxml_soup.contents[1].extract()
 
 	scn_collection = []
 	tag_collection = marcxml_soup.find_all('marc:datafield')
