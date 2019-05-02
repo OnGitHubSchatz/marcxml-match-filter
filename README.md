@@ -7,6 +7,7 @@ Python 3.4+
 `git clone git@github.com:gitschatz/marcxml-match-filter.git match-filter && cd match-filter`
 ### Having just installed Python3 on a Python2.x system
 `pip3 install -r requirements.txt`
+
 `sudo cp match_filter.py /usr/local/bin/match_filter && sudo chmod +x /usr/local/bin/match_filter`
 
 ## Usage
