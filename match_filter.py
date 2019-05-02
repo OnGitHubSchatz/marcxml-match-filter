@@ -18,8 +18,11 @@ def process(path, marcxml):
 	parsed = parse_marcxml(marcxml)
 
 	unmatched_ids = diff_index_records(index, parsed['collection'])
-
-	click.echo("Found {} unmatched items to remove".format(len(unmatched_ids)))
+	if len(unmatched_ids) is not 0:
+		click.echo("Found {} unmatched items to remove".format(len(unmatched_ids)))
+	else:
+		click.echo("No unmatched items found. Exiting.")
+		exit(0)
 
 	# @todo move to own function
 	# snip ----
@@ -29,7 +32,7 @@ def process(path, marcxml):
 		unmatched_records.append(parsed['soup'].find('marc:datafield', string=u).parent)
 
 	writeable_unmatched_records = list(map(lambda r: str(r), unmatched_records))
-	unmatched_records_file = "unmatched_{}_{}".format(len(unmatched_ids), marcxml.name)
+	unmatched_records_file = "unmatched_{}_{}".format(len(unmatched_ids), os.path.split(marcxml.name)[1])
 
 	with open(unmatched_records_file, 'w') as urf:
 		urf.write(
@@ -38,7 +41,7 @@ def process(path, marcxml):
 			urf.write("{}".format(item))
 		urf.write("</marc:collection>")
 
-	if os.path.realpath(unmatched_records_file):
+	if os.path.exists(unmatched_records_file):
 		click.echo("Created {} in current directory".format(unmatched_records_file))
 
 	# ----snip
