@@ -55,7 +55,7 @@ def filenames_to_index(directory):
 	# Assuming EPUBs
 	epubs = [f for f in glob.glob(directory + "/*.epub")]
 	# Assuming a numerical 8-16 char identifier
-	scns = [m.group(1) for fname in epubs for m in [re.search("[\s_]?(\d{8,16})\.epub", fname)] if m]
+	scns = [m.group(1) for fname in epubs for m in [re.search("[\s_]?(\d{8,16}X?)\.epub", fname)] if m]
 	return scns
 
 
