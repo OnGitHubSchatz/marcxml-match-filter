@@ -12,4 +12,5 @@ Python 3.4+
 
 ## Usage
 Requires a directory of EPUB files and a MARCXML record collection in valid XML.
+
 `python3 match_filter.py PATH/ MARCXML`
