@@ -6,12 +6,13 @@ import click
 import glob
 import re
 import os
-
+import time
 
 @click.command()
 @click.argument('path', type=click.Path(exists=True, file_okay=False))
 @click.argument('marcxml', type=click.File(mode='r+'))
 def process(path, marcxml):
+	process_start = time.time()
 	index = filenames_to_index(path)
 
 	# Dict with length, collection, soup keys
@@ -40,21 +41,25 @@ def process(path, marcxml):
 	with open(unmatched_records_file, 'w') as urf:
 		urf.write(
 			'<?xml version="1.0" encoding="UTF-8" ?><marc:collection xmlns:marc="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">')
+		# @todo click.progressbar()
 		for item in writeable_unmatched_records:
 			urf.write("{}".format(item))
 		urf.write("</marc:collection>")
 
 	if os.path.exists(unmatched_records_file):
 		click.echo("Created {} in current directory".format(unmatched_records_file))
+		# print('{0:0.1f} second execution'.format(time.time() - process_start))
 
 	# ----snip
 
 	click.echo("Ready to filter file at: {}".format(os.path.realpath(marcxml.name)))
 
 	if click.confirm('Do you want to continue?', abort=True):
+		filter_start = time.time()
 		if create_backup(parsed['len'], marcxml):
 			if remove_unmatched(unmatched_record_ids, parsed['soup'], marcxml):
 				click.echo("Filtered out {} unmatched records from {}".format(len(unmatched_record_ids), marcxml.name))
+				# print('{0:0.1f} second execution'.format(time.time() - filter_start))
 
 
 def filenames_to_index(directory):
@@ -109,6 +114,7 @@ def create_backup(length, marcxml):
 
 def remove_unmatched(unmatched_ids, soup, marcxml):
 	# Decompose the parents (records) of unmatched 001 tags
+	# @todo click.progressbar()
 	for unmatch in unmatched_ids:
 		soup.find('marc:controlfield', {"tag": "001"}, string=unmatch).parent.decompose()
 
