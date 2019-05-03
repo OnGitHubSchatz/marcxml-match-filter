@@ -35,7 +35,7 @@ def process(path, marcxml):
 			click.echo("A parent marc:record element was not found for 001: {}. Skipping...".format(u))
 
 	writeable_unmatched_records = list(map(lambda r: str(r), unmatched_records))
-	unmatched_records_file = "unmatched_{}_{}".format(len(unmatched_record_ids), os.path.split(marcxml.name)[1])
+	unmatched_records_file = "{}_unmatchable_{}".format(len(unmatched_record_ids), os.path.split(marcxml.name)[1] if os.path.dirname(marcxml.name) is not '' else marcxml.name)
 
 	with open(unmatched_records_file, 'w') as urf:
 		urf.write(
@@ -102,7 +102,7 @@ def diff_index_records(index, scn_collection):
 
 
 def create_backup(length, marcxml):
-	command = "cp {} {}_backup.{}".format(marcxml.name, length, marcxml.name)
+	command = "cp {} {}.backup".format(marcxml.name, marcxml.name)
 	if os.system(command) == 0:
 		return True
 
