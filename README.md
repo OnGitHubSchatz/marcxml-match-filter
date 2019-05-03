@@ -7,8 +7,8 @@ Python 3.4+
 ```bash
 git clone git@github.com:gitschatz/marcxml-match-filter.git match-filter && cd match-filter
 ```
-or
-Download latest archive: https://github.com/gitschatz/marcxml-match-filter/releases/latest
+or:
+[Download latest archive](https://github.com/gitschatz/marcxml-match-filter/releases/latest) and unpack to a staging folder.
 
 ### Install requirements and script locally
 ```bash
