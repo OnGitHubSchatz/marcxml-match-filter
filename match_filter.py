@@ -29,11 +29,12 @@ def process(path, marcxml):
 	# snip ----
 
 	unmatched_records = []
-	for u in unmatched_record_ids:
-		try:
-			unmatched_records.append(parsed['soup'].find('marc:controlfield', string=u).parent)
-		except AttributeError:
-			click.echo("A parent marc:record element was not found for 001: {}. Skipping...".format(u))
+	with click.progressbar(unmatched_record_ids, label="Collecting unmatchable records from set...") as bar:
+		for u in bar:
+			try:
+				unmatched_records.append(parsed['soup'].find('marc:controlfield', string=u).parent)
+			except AttributeError:
+				click.echo("A parent marc:record element was not found for 001: {}. Skipping...".format(u))
 
 	writeable_unmatched_records = list(map(lambda r: str(r), unmatched_records))
 	unmatched_records_file = "{}_unmatchable_{}".format(len(unmatched_record_ids), os.path.split(marcxml.name)[1] if os.path.dirname(marcxml.name) is not '' else marcxml.name)
@@ -41,9 +42,9 @@ def process(path, marcxml):
 	with open(unmatched_records_file, 'w') as urf:
 		urf.write(
 			'<?xml version="1.0" encoding="UTF-8" ?><marc:collection xmlns:marc="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">')
-		# @todo click.progressbar()
-		for item in writeable_unmatched_records:
-			urf.write("{}".format(item))
+		with click.progressbar(writeable_unmatched_records, label="Exporting unmatchable records...") as bar:
+			for item in bar:
+				urf.write("{}".format(item))
 		urf.write("</marc:collection>")
 
 	if os.path.exists(unmatched_records_file):
@@ -114,9 +115,9 @@ def create_backup(length, marcxml):
 
 def remove_unmatched(unmatched_ids, soup, marcxml):
 	# Decompose the parents (records) of unmatched 001 tags
-	# @todo click.progressbar()
-	for unmatch in unmatched_ids:
-		soup.find('marc:controlfield', {"tag": "001"}, string=unmatch).parent.decompose()
+	with click.progressbar(unmatched_ids, label="Removing unmatchable records...") as bar:
+		for unmatch in bar:
+			soup.find('marc:controlfield', {"tag": "001"}, string=unmatch).parent.decompose()
 
 	# Replace the file passed in as argument initially.
 	marcxml.seek(0)
