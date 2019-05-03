@@ -121,7 +121,8 @@ def remove_unmatched(unmatched_ids, soup, marcxml):
 	# Replace the file passed in as argument initially.
 	marcxml.seek(0)
 	marcxml.truncate()
-	marcxml.write(str(soup))
+	# Scrub double newlines and cast as string
+	marcxml.write(re.sub('[\n]{2}', '', str(soup)))
 	return True
 
 
