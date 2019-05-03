@@ -17,9 +17,9 @@ def process(path, marcxml):
 	# Dict with length, collection, soup keys
 	parsed = parse_marcxml(marcxml)
 
-	unmatched_ids = diff_index_records(index, parsed['collection'])
-	if len(unmatched_ids) is not 0:
-		click.echo("Found {} unmatched items to remove".format(len(unmatched_ids)))
+	unmatched_record_ids = diff_index_records(index, parsed['collection'])
+	if len(unmatched_record_ids) is not 0:
+		click.echo("Found {} unmatched items to remove".format(len(unmatched_record_ids)))
 	else:
 		click.echo("No unmatched items found. Exiting.")
 		exit(0)
@@ -28,11 +28,14 @@ def process(path, marcxml):
 	# snip ----
 
 	unmatched_records = []
-	for u in unmatched_ids:
-		unmatched_records.append(parsed['soup'].find('marc:datafield', string=u).parent)
+	for u in unmatched_record_ids:
+		try:
+			unmatched_records.append(parsed['soup'].find('marc:controlfield', string=u).parent)
+		except AttributeError:
+			click.echo("A parent marc:record element was not found for 001: {}. Skipping...".format(u))
 
 	writeable_unmatched_records = list(map(lambda r: str(r), unmatched_records))
-	unmatched_records_file = "unmatched_{}_{}".format(len(unmatched_ids), os.path.split(marcxml.name)[1])
+	unmatched_records_file = "unmatched_{}_{}".format(len(unmatched_record_ids), os.path.split(marcxml.name)[1])
 
 	with open(unmatched_records_file, 'w') as urf:
 		urf.write(
@@ -50,8 +53,8 @@ def process(path, marcxml):
 
 	if click.confirm('Do you want to continue?', abort=True):
 		if create_backup(parsed['len'], marcxml):
-			if remove_unmatched(unmatched_ids, parsed['soup'], marcxml):
-				click.echo("Filtered out {} unmatched records from {}".format(len(unmatched_ids), marcxml.name))
+			if remove_unmatched(unmatched_record_ids, parsed['soup'], marcxml):
+				click.echo("Filtered out {} unmatched records from {}".format(len(unmatched_record_ids), marcxml.name))
 
 
 def filenames_to_index(directory):
@@ -64,10 +67,13 @@ def filenames_to_index(directory):
 
 def parse_marcxml(marcxml_file):
 	marcxml_soup = BeautifulSoup(marcxml_file, features="xml")
-	# Bug? Extra XML ProcessingInstruction appears as last element, extract it.
-	marcxml_soup.contents[1].extract()
 
-	scn_collection = []
+	# Bug? Extra XML ProcessingInstruction appears as last element, extract it.
+	check_extra = marcxml_soup.contents
+	if len(check_extra) > 1:
+		check_extra[1].extract()
+
+	scn_collection = []  # type: List[str]
 	tag_collection = marcxml_soup.find_all('marc:datafield')
 	record_length = len(marcxml_soup.find_all('marc:record'))
 
