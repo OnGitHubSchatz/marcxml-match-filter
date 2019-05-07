@@ -54,14 +54,14 @@ def process(path, marcxml):
 
 	# ----snip
 
-	click.echo("Ready to filter file at: {}".format(os.path.realpath(marcxml.name)))
+	# click.echo("Ready to filter file at: {}".format(os.path.realpath(marcxml.name)))
 
-	if click.confirm('Do you want to continue?', abort=True):
-		filter_start = time.time()
-		if create_backup(parsed['len'], marcxml):
-			if remove_unmatched(unmatched_record_ids, parsed['soup'], marcxml):
-				click.echo("Filtered out {} unmatched records from {}".format(len(unmatched_record_ids), marcxml.name))
-				# print('{0:0.1f} second execution'.format(time.time() - filter_start))
+	# if click.confirm('Do you want to continue?', abort=True):
+	filter_start = time.time()
+	if create_backup(parsed['len'], marcxml):
+		if remove_unmatched(unmatched_record_ids, parsed['soup'], marcxml):
+			click.echo("Filtered out {} unmatched records from {}".format(len(unmatched_record_ids), marcxml.name))
+			# print('{0:0.1f} second execution'.format(time.time() - filter_start))
 
 
 def filenames_to_index(directory):
