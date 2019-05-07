@@ -37,7 +37,8 @@ def process(path, marcxml):
 				click.echo("A parent marc:record element was not found for 001: {}. Skipping...".format(u))
 
 	writeable_unmatched_records = list(map(lambda r: str(r), unmatched_records))
-	unmatched_records_file = "{}_unmatchable_{}".format(len(unmatched_record_ids), os.path.split(marcxml.name)[1] if os.path.dirname(marcxml.name) is not '' else marcxml.name)
+	unmatched_records_file = os.path.dirname(marcxml.name) + "/" + "{}_unmatchable_{}".format(len(unmatched_record_ids),
+							os.path.split(marcxml.name)[1] if os.path.dirname(marcxml.name) is not '' else marcxml.name)
 
 	with open(unmatched_records_file, 'w') as urf:
 		urf.write(
