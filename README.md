@@ -19,7 +19,10 @@ sudo cp match_filter.py /usr/local/bin/match_filter && sudo chmod +x /usr/local/
 ## Usage
 Requires a directory of EPUB files and a MARCXML record collection in valid XML.
 ```bash
-match_filter PATH/ MARCXML
+match_filter SOURCE MARCXML
+
+Options:
+-t, --text-file
 ```
 ```bash
 match_filter --help
