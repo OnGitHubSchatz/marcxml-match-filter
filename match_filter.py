@@ -10,13 +10,17 @@ import time
 
 
 @click.command()
-@click.argument('path', type=click.Path(exists=True, file_okay=False))
+@click.argument('path', type=click.Path(exists=True))
 @click.argument('marcxml', type=click.File(mode='r+'))
-def process(path, marcxml):
+@click.option('--text-file', '-t', is_flag=True, default=False)
+def process(path, marcxml, text_file):
 	# process_start = time.time()
 
 	# Build a filename index from first argument
-	index = filenames_to_index(path)  # type: List[str]
+	if text_file is True:
+		index = plaintext_to_index(path) # type: List[str]
+	else:
+		index = filenames_to_index(path)  # type: List[str]
 
 	# Build parsed dict from second argument
 	parsed = parse_marcxml(marcxml)  # type: Dict[str, Union[int, List[str], BeautifulSoup]]
@@ -37,12 +41,22 @@ def process(path, marcxml):
 		# print('{0:0.1f} second execution'.format(time.time() - filter_start))
 
 
+def discover_scns(discoverable):
+	# Assuming SCN is numerical 8-16 char identifier with version info
+	return [m.group(1) for fname in discoverable for m in [re.search("[\s_]?(\d{8,16}X?)(_v\d)?", fname)] if m]
+
+
+def plaintext_to_index(plaintext):
+	with open(plaintext, 'r') as ptf:
+		lines = ptf.read().splitlines()
+
+	return discover_scns(lines)
+
+
 def filenames_to_index(directory):
 	# Assuming EPUBs
 	epubs = [f for f in glob.glob(directory + "/*.epub")]
-	# Assuming a numerical 8-16 char identifier
-	scns = [m.group(1) for fname in epubs for m in [re.search("[\s_]?(\d{8,16}X?)(_v\d)?\.epub", fname)] if m]
-	return scns
+	return discover_scns(epubs)
 
 
 def parse_marcxml(marcxml_file):
