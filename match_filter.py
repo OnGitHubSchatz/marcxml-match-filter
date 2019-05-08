@@ -10,17 +10,17 @@ import time
 
 
 @click.command()
-@click.argument('path', type=click.Path(exists=True))
+@click.argument('source', type=click.Path(exists=True))
 @click.argument('marcxml', type=click.File(mode='r+'))
 @click.option('--text-file', '-t', is_flag=True, default=False)
-def process(path, marcxml, text_file):
+def process(source, marcxml, text_file):
 	# process_start = time.time()
 
 	# Build a filename index from first argument
 	if text_file is True:
-		index = plaintext_to_index(path) # type: List[str]
+		index = plaintext_to_index(source) # type: List[str]
 	else:
-		index = filenames_to_index(path)  # type: List[str]
+		index = filenames_to_index(source)  # type: List[str]
 
 	# Build parsed dict from second argument
 	parsed = parse_marcxml(marcxml)  # type: Dict[str, Union[int, List[str], BeautifulSoup]]
@@ -106,11 +106,9 @@ def save_unmatched_records(unmatched_record_ids, soup, marcxml):
 				click.echo("A parent marc:record element was not found for 001: {}. Skipping...".format(u))
 
 	writeable_unmatched_records = list(map(lambda r: str(r), unmatched_records))
-	unmatched_records_file = os.path.dirname(marcxml.name) + "/" + "{}_unmatchable_{}".format(len(unmatched_record_ids),
-																							  os.path.split(
-																								  marcxml.name)[
-																								  1] if os.path.dirname(
-																								  marcxml.name) is not '' else marcxml.name)
+	unmatched_records_file = \
+		os.path.dirname(marcxml.name) + "/" + "{}_unmatchable_{}".format(len(unmatched_record_ids),
+		os.path.split(marcxml.name)[1] if os.path.dirname(marcxml.name) is not '' else marcxml.name)
 
 	# Write to unmatchable file
 	with open(unmatched_records_file, 'w') as urf:
