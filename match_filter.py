@@ -73,7 +73,7 @@ def parse_marcxml(marcxml_file):
 
 	for tag in tag_collection:
 		if tag.attrs['tag'] == '028' and tag.find('marc:subfield').attrs['code'] == 'a':
-			record = tag.parent.find('marc:controlfield', {"tag": "001"}).string
+			record = tag.parent.find('marc:controlfield', {"tag": "001"}).text
 			# list of dicts to allow for duplicates 001's:028's
 			scn_collection.append({record: tag.text})
 
@@ -87,12 +87,12 @@ def diff_index_records(index, scn_collection):
 	# @todo list of dict comprehension
 	for dic in scn_collection:
 		for key, val in dic.items():
-			if val in index:
-				matching_record_ids.append(str(key.strip()))
+			if val.strip() in index:
+				matching_record_ids.append(str(key))
 
 	matching_whitelist_uniq = list(dict.fromkeys(matching_record_ids))
 	# Subtract the whitelisted matching records from the record ids in collection, left with unmatched record ids
-	return list(set([str(*d.keys()).strip() for d in scn_collection]) - set(matching_whitelist_uniq))
+	return list(set([str(*d.keys()) for d in scn_collection]) - set(matching_whitelist_uniq))
 
 
 def save_unmatched_records(unmatched_record_ids, soup, marcxml):
@@ -134,7 +134,11 @@ def remove_unmatched(unmatched_ids, soup, marcxml):
 	# Decompose the parents (records) of unmatched 001 tags
 	with click.progressbar(unmatched_ids, label="Removing unmatchable records...") as bar:
 		for unmatch in bar:
-			soup.find('marc:controlfield', {"tag": "001"}, string=unmatch).parent.decompose()
+			try:
+				soup.find('marc:controlfield', {"tag": "001"}, string=unmatch).parent.decompose()
+			except AttributeError:
+				click.echo("Couldn't remove previously found Record: 001 = {}.\n"
+						   "Ensure the MARCXML is well-formed.").format(unmatch)
 
 	# Replace the file passed in as argument initially.
 	marcxml.seek(0)
